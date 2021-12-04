@@ -1,8 +1,6 @@
 // import { testInput as input } from "./04-input";
 import { input } from "./04-input";
 
-const crossed = -1;
-
 export function doIt() {
   const [numbersDrawnS, boardsS] = input.split(`\n\n\n`).map(
     (line) => line //
@@ -18,56 +16,28 @@ export function doIt() {
   );
   //   console.log(numbersDrawn);
   //   console.log(boards);
-  const first = solve(numbersDrawn, boards);
-  const second = solve2(numbersDrawn, boards);
+  const first = solve(numbersDrawn, boards, 1);
+  const second = solve(numbersDrawn, boards, boards.length);
   console.log(first, second);
 }
 
-function solve(numbersDrawn: number[], boards: number[][][]) {
-  let i = 0;
-  let result = -1;
-  do {
-    const draw = numbersDrawn[i];
-    // console.log("draw", draw);
-    boards = boards.map((board) => {
-      const updated = board.map((line) =>
-        line.map((n) => (n !== draw ? n : crossed))
-      );
-      //   console.log(updated);
-      const isHLine = updated.some((line) => line.every((n) => n === crossed));
-      const isVLine = updated.some((_, i) =>
-        updated.every((line) => line[i] === crossed)
-      );
-      if (isHLine || isVLine) {
-        result =
-          draw *
-          updated.reduce(
-            (prev, line) =>
-              prev + line.reduce((p, n) => p + (n === crossed ? 0 : n), 0),
-            0
-          );
-        console.log(isVLine, isHLine, result);
-      }
-      return updated;
-    });
-    i++;
-  } while (result === -1);
-  return result;
-}
+const crossed = "X";
+const solved = "solved";
 
-function solve2(numbersDrawn: number[], boards: number[][][]) {
+function solve(
+  numbersDrawn: number[],
+  boards: ((number | typeof crossed)[][] | typeof solved)[],
+  remainsToSolve: number
+) {
   let i = 0;
   let result = -1;
-  let unsolved = boards.length;
   do {
     const draw = numbersDrawn[i];
-    // console.log("draw", draw);
     boards = boards.map((board) => {
-      if (board.length === 0) return board;
+      if (board === solved) return board;
       const updated = board.map((line) =>
-        line.map((n) => (n !== draw ? n : crossed))
+        line.map((n) => (n === draw ? crossed : n))
       );
-      //   console.log(updated);
       const isHLine = updated.some((line) => line.every((n) => n === crossed));
       const isVLine = updated.some((_, i) =>
         updated.every((line) => line[i] === crossed)
@@ -77,15 +47,16 @@ function solve2(numbersDrawn: number[], boards: number[][][]) {
           draw *
           updated.reduce(
             (prev, line) =>
-              prev + line.reduce((p, n) => p + (n === crossed ? 0 : n), 0),
+              prev +
+              line.reduce((p: number, n) => p + (n === crossed ? 0 : n), 0),
             0
           );
-        unsolved--;
-        return [];
+        remainsToSolve--;
+        return solved;
       }
       return updated;
     });
     i++;
-  } while (unsolved);
+  } while (remainsToSolve);
   return result;
 }
