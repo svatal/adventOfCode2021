@@ -9,28 +9,16 @@ export function doIt() {
         return { x, y };
       }) //
   );
-  const map = lines
-    .filter((line) => line[0].x === line[1].x || line[0].y === line[1].y)
-    .map((l) => (l[0].x < l[1].x || l[0].y < l[1].y ? l : [l[1], l[0]]))
-    .reduce((m, line) => {
-      const xLen = line[1].x - line[0].x;
-      const yLen = line[1].y - line[0].y;
-      //   console.log(line, xLen, yLen);
-      for (let i = 0; i <= xLen + yLen; i++) {
-        const x = line[0].x + (xLen ? i : 0);
-        const y = line[0].y + (yLen ? i : 0);
-        // console.log(x, y);
-        m[y] = m[y] ?? [];
-        m[y][x] = (m[y][x] ?? 0) + 1;
-      }
-      return m;
-    }, [] as number[][]);
-  //   console.log(map);
-  const first = map.reduce(
-    (p, c) => p + c.reduce((p, c) => p + (c > 1 ? 1 : 0), 0),
-    0
+  console.log(
+    danger(
+      lines.filter((line) => line[0].x === line[1].x || line[0].y === line[1].y)
+    ),
+    danger(lines)
   );
-  const map2 = lines.reduce((m, line) => {
+}
+
+function danger(lines: { x: number; y: number }[][]) {
+  const map = lines.reduce((m, line) => {
     const xLen = line[1].x - line[0].x;
     const yLen = line[1].y - line[0].y;
     // console.log(line, xLen, yLen);
@@ -43,10 +31,8 @@ export function doIt() {
     }
     return m;
   }, [] as number[][]);
-  //   console.log(map2);
-  const second = map2.reduce(
+  return map.reduce(
     (p, c) => p + c.reduce((p, c) => p + (c > 1 ? 1 : 0), 0),
     0
   );
-  console.log(first, second);
 }
