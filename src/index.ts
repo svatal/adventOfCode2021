@@ -1,3 +1,3 @@
-import { doIt } from "./09";
+import { doIt } from "./10";
 
 doIt();
