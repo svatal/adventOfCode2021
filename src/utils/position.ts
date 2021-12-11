@@ -27,6 +27,19 @@ export function neighbors4(p: IPosition): IPosition[] {
   ];
 }
 
+export function neighbors8(p: IPosition): IPosition[] {
+  const { x, y } = p;
+  return [
+    { x: x + 1, y },
+    { x: x - 1, y },
+    { x, y: y + 1 },
+    { x: x + 1, y: y + 1 },
+    { x: x - 1, y: y + 1 },
+    { x, y: y - 1 },
+    { x: x + 1, y: y - 1 },
+    { x: x - 1, y: y - 1 },
+  ];
+}
 export function existIn(map: number[][]) {
   return (pos: IPosition): pos is ICheckedPosition =>
     map[pos.y] !== undefined && map[pos.y][pos.x] !== undefined;
