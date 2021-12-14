@@ -2,13 +2,10 @@
 import { input } from "./14-input";
 
 export function doIt() {
-  const [template, rulesS] = input.split(`\n\n`).map(
-    (line) => line //
-  );
+  const [template, rulesS] = input.split(`\n\n`);
   const rules = rulesS.split("\n").reduce((p, r) => {
     const [input, output] = r.split(" -> ");
-    p.set(input, output);
-    return p;
+    return p.set(input, output);
   }, new Map<string, string>());
   let t = template
     .split("")
@@ -16,50 +13,30 @@ export function doIt() {
     .filter((i) => i.length === 2)
     .reduce((m, c) => m.set(c, (m.get(c) || 0) + 1), new Map<string, number>());
   for (let i = 0; i < 10; i++) {
-    t = step2(t, rules);
+    t = step(t, rules);
   }
-  let first = Array.from(
-    Array.from(t.entries())
-      .reduce((p, [key, count]) => {
-        const c = key[0];
-        p.set(c, (p.get(c) || 0) + count);
-        return p;
-      }, new Map<string, number>([[template[template.length - 1], 1]]))
-      .values()
-  ).sort((a, b) => a - b);
+  const first = getResult(t, template[template.length - 1]);
   for (let i = 0; i < 30; i++) {
-    t = step2(t, rules);
+    t = step(t, rules);
   }
+  const second = getResult(t, template[template.length - 1]);
+  console.log(first, second);
+}
 
-  let second = Array.from(
+function getResult(t: Map<string, number>, lastLetter: string) {
+  const a = Array.from(
     Array.from(t.entries())
       .reduce((p, [key, count]) => {
         const c = key[0];
         p.set(c, (p.get(c) || 0) + count);
         return p;
-      }, new Map<string, number>([[template[template.length - 1], 1]]))
+      }, new Map<string, number>([[lastLetter, 1]]))
       .values()
   ).sort((a, b) => a - b);
-  console.log(
-    first[first.length - 1] - first[0],
-    second[second.length - 1] - second[0]
-  );
+  return a[a.length - 1] - a[0];
 }
 
-function step(template: string, rules: Map<string, string>) {
-  let result = template[0];
-  for (let i = 1; i < template.length; i++) {
-    const consider = template[i - 1] + template[i];
-    const rule = rules.get(consider);
-    if (rule) {
-      result += rule;
-    }
-    result += template[i];
-  }
-  return result;
-}
-
-function step2(template: Map<string, number>, rules: Map<string, string>) {
+function step(template: Map<string, number>, rules: Map<string, string>) {
   const result = new Map<string, number>();
   Array.from(template.entries()).forEach(([key, count]) => {
     const r = rules.get(key);
