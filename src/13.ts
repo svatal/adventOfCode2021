@@ -16,7 +16,6 @@ export function doIt() {
   });
   folds.forEach;
 
-  // console.log(fold1(dots, folds[0]).map(posToString));
   const first = new Set(fold1(dots, folds[0]).map(posToString)).size;
   const second = Array.from(
     new Set(fold(dots, folds).map(posToString)).values()
