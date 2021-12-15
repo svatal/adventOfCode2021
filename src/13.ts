@@ -14,7 +14,6 @@ export function doIt() {
     const [i, n] = f.split("=");
     return { axis: i[i.length - 1], n: +n };
   });
-  folds.forEach;
 
   const first = new Set(fold1(dots, folds[0]).map(posToString)).size;
   const second = Array.from(
