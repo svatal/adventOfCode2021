@@ -20,28 +20,25 @@ function parsePacket(m: Message, isSubpacket = false) {
   let result = 0;
   switch (typeId) {
     case 4: {
+      const numbers = [];
       while (m.readBits(1) === 1) {
-        const n = m.readBits(4);
-        result *= 16;
-        result += n;
+        numbers.push(m.readBits(4));
       }
-      const n = m.readBits(4);
-      result *= 16;
-      result += n;
+      numbers.push(m.readBits(4));
+      result += numbers.reduce((a, b) => a * 16 + b, 0);
       console.log("literal", version, typeId, result);
       break;
     }
     default: {
       const lengthTypeId = m.readBits(1);
-      console.log("operator", lengthTypeId);
+      console.log("operation", version, typeId, lengthTypeId);
       const messages = [];
       switch (lengthTypeId) {
         case 0: {
           const len = m.readBits(15);
-          const msg = m.getBits(len);
-          const inM = new Message(msg);
-          while (inM.currentChar.length > 0) {
-            messages.push(parsePacket(inM, true));
+          const innerMessage = new Message(m.getBits(len));
+          while (innerMessage.currentChar.length > 0) {
+            messages.push(parsePacket(innerMessage, true));
           }
           break;
         }

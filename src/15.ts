@@ -1,16 +1,10 @@
 // import { testInput as input } from "./15-input";
 import { input } from "./15-input";
-import {
-  existIn,
-  IPosition,
-  neighbors4,
-  posToString,
-  valueInMap,
-} from "./utils/position";
+import { existIn, neighbors4, posToString, valueInMap } from "./utils/position";
 
 export function doIt() {
   const parsed = input.split(`\n`).map((line) => line.split("").map((r) => +r));
-  const first = visit(parsed, new Set(), [{ x: 0, y: 0, r: 0 }]);
+  const first = visit(parsed);
   const x5 = parsed.map((l) => [
     ...l,
     ...l.map((r) => (r % 9) + 1),
@@ -22,19 +16,13 @@ export function doIt() {
   for (let i = 1; i < 5; i++) {
     y5.push(...x5.map((l) => l.map((r) => ((r + i - 1) % 9) + 1)));
   }
-  const second = visit(y5, new Set(), [{ x: 0, y: 0, r: 0 }]);
+  const second = visit(y5);
   console.log(first, second);
 }
 
-interface IPosWithRisk extends IPosition {
-  r: number;
-}
-
-function visit(
-  map: number[][],
-  visited: Set<string>,
-  candidates: IPosWithRisk[]
-): number {
+function visit(map: number[][]): number {
+  const visited = new Set<string>();
+  const candidates = [{ x: 0, y: 0, r: 0 }];
   while (true) {
     candidates.sort((a, b) => b.r - a.r);
     const current = candidates.pop()!;
@@ -51,11 +39,5 @@ function visit(
     );
     if (target) return target.r;
     candidates.push(...newCandidates);
-    // console.log(
-    //   map.length * map[0].length,
-    //   visited.size,
-    //   candidates.length,
-    //   current
-    // );
   }
 }
