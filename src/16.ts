@@ -54,19 +54,19 @@ function parsePacket(m: Message, isSubpacket = false) {
       const res = messages.map((m) => m.result);
       switch (typeId) {
         case 0: {
-          result = messages.map((m) => m.result).reduce((a, b) => a + b, 0);
+          result = res.reduce((a, b) => a + b, 0);
           break;
         }
         case 1: {
-          result = messages.map((m) => m.result).reduce((a, b) => a * b, 1);
+          result = res.reduce((a, b) => a * b, 1);
           break;
         }
         case 2: {
-          result = Math.min(...messages.map((m) => m.result));
+          result = Math.min(...res);
           break;
         }
         case 3: {
-          result = Math.max(...messages.map((m) => m.result));
+          result = Math.max(...res);
           break;
         }
         case 5: {
