@@ -27,7 +27,7 @@ export function doIt() {
             if (vx > 0) vx--;
           }
           if (x >= targetX.min && x <= targetX.max) {
-            console.log(maxY, vy0, vx0);
+            // console.log(maxY, vy0, vx0);
             vs.add(posToString({ x: vy0, y: vx0 }));
             maxMaxY = Math.max(maxMaxY, maxY);
           }
