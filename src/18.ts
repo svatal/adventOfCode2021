@@ -39,11 +39,9 @@ function parse(s: string) {
 
 function parseInternal(s: string, i: number): { pair: Branch; next: number } {
   const char = s[i];
-  if (char === undefined) throw "xx";
   if (!isNaN(+char)) {
     return { pair: +char, next: i + 1 };
   }
-  // '['
   const left = parseInternal(s, i + 1);
   const right = parseInternal(s, left.next + 1);
   const pair = { left: left.pair, right: right.pair };
@@ -54,68 +52,62 @@ function parseInternal(s: string, i: number): { pair: Branch; next: number } {
   return { pair, next: right.next + 1 };
 }
 
-function reduce(pair: IPair): IPair {
-  let reduced = false;
+function reduce(rootPair: IPair): IPair {
+  let didSomething = false;
   do {
-    reduced = explode(pair, 0) || split(pair);
-  } while (reduced);
-  return pair;
+    didSomething = tryToExplode(rootPair) || tryToSplit(rootPair);
+  } while (didSomething);
+  return rootPair;
 }
 
-function explode(b: Branch, d: number): boolean {
+function tryToExplode(b: Branch, d: number = 1): boolean {
   if (typeof b === "number") return false;
-  if (d === 4) {
+  if (d === 5) {
     const up = b.up!;
     if (up.branch === BranchType.left) {
       up.pair.left = 0;
-      if (typeof up.pair.right === "number") {
-        up.pair.right += <number>b.right;
-      } else {
-        addToLeftMost(up.pair.right, <number>b.right);
-      }
+      addToRight(up.pair, <number>b.right);
       let c = b.up;
       while (c?.branch === BranchType.left) {
         c = c.pair.up;
       }
       if (c) {
-        if (typeof c.pair.left === "number") {
-          c.pair.left += <number>b.left;
-        } else {
-          addToRightMost(c.pair.left, <number>b.left);
-        }
+        addToLeft(c.pair, <number>b.left);
       }
     } else {
       up.pair.right = 0;
-      if (typeof up.pair.left === "number") {
-        up.pair.left += <number>b.left;
-      } else {
-        addToRightMost(up.pair.left, <number>b.left);
-      }
+      addToLeft(up.pair, <number>b.left);
       let c = b.up;
       while (c?.branch === BranchType.right) {
         c = c.pair.up;
       }
       if (c) {
-        if (typeof c.pair.right === "number") {
-          c.pair.right += <number>b.right;
-        } else {
-          addToLeftMost(c.pair.right, <number>b.right);
-        }
+        addToRight(c.pair, <number>b.right);
       }
     }
     return true;
   }
-  return explode(b.left, d + 1) || explode(b.right, d + 1);
+  return tryToExplode(b.left, d + 1) || tryToExplode(b.right, d + 1);
 }
 
-function addToRightMost(p: IPair, x: number) {
-  while (typeof p.right !== "number") p = p.right;
-  p.right += x;
+function addToLeft(parent: IPair, n: number) {
+  if (typeof parent.left === "number") {
+    parent.left += n;
+  } else {
+    let p = parent.left;
+    while (typeof p.right !== "number") p = p.right;
+    p.right += n;
+  }
 }
 
-function addToLeftMost(p: IPair, x: number) {
-  while (typeof p.left !== "number") p = p.left;
-  p.left += x;
+function addToRight(parent: IPair, n: number) {
+  if (typeof parent.right === "number") {
+    parent.right += n;
+  } else {
+    let p = parent.right;
+    while (typeof p.left !== "number") p = p.left;
+    p.left += n;
+  }
 }
 
 function toString(p: Branch): string {
@@ -124,34 +116,28 @@ function toString(p: Branch): string {
     : `[${toString(p.left)},${toString(p.right)}]`;
 }
 
-function split(p: IPair): boolean {
-  if (typeof p.left === "number") {
-    if (p.left > 9) {
-      p.left = {
-        left: Math.floor(p.left / 2),
-        right: Math.ceil(p.left / 2),
-        up: { pair: p, branch: BranchType.left },
-      };
-      return true;
-    }
-  } else {
-    const r = split(p.left);
-    if (r) return true;
-  }
-  if (typeof p.right === "number") {
-    if (p.right > 9) {
-      p.right = {
-        left: Math.floor(p.right / 2),
-        right: Math.ceil(p.right / 2),
-        up: { pair: p, branch: BranchType.right },
-      };
-      return true;
-    }
-  } else {
-    const r = split(p.right);
-    if (r) return true;
-  }
-  return false;
+function tryToSplit(p: IPair): boolean {
+  const changedSomething = forBoth(p, (b, type, update) => {
+    if (typeof b !== "number") return tryToSplit(b);
+    if (b <= 9) return false;
+    update({
+      left: Math.floor(b / 2),
+      right: Math.ceil(b / 2),
+      up: { pair: p, branch: type },
+    });
+    return true;
+  });
+  return changedSomething;
+}
+
+function forBoth(
+  p: IPair,
+  cb: (b: Branch, type: BranchType, update: (b: Branch) => void) => boolean
+): boolean {
+  let shouldStop = cb(p.left, BranchType.left, (b) => (p.left = b));
+  if (shouldStop) return true;
+  shouldStop = cb(p.right, BranchType.right, (b) => (p.right = b));
+  return shouldStop;
 }
 
 function magnitude(p: Branch): number {
