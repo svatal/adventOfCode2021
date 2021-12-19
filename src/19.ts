@@ -2,15 +2,25 @@
 import { input } from "./19-input";
 
 export function doIt() {
-  const parsed = input.split(`\n\n`).map((line) => {
+  let [spaceP, ...toMatchProt] = input.split(`\n\n`).map((line) => {
     const [first, ...rest] = line.split("\n");
     const id = +first.split(" ")[2];
     const positions = rest.map(posFromString);
     return { id, positions };
   });
   const start = Date.now();
-  let [spaceP, ...toMatch] = parsed.map((p) => expandRotations(p.positions));
-  const space = new Set<string>(spaceP[0].positions.map((p) => posToString(p)));
+  let toMatch = toMatchProt.map((p) => {
+    const candidatesWithRotation = getCandidates(p.positions).map(
+      expandRotations
+    );
+    const rotations = expandRotations(p.positions);
+    return rotations.map((r, i) => ({
+      positions: r,
+      candidates: candidatesWithRotation.map((c) => c[i]),
+    }));
+  });
+  console.log("preparations", Date.now() - start, "ms");
+  const space = new Set<string>(spaceP.positions.map((p) => posToString(p)));
   let beacons = [{ x: 0, y: 0, z: 0 }];
   while (toMatch.length > 0) {
     const s = toMatch.shift()!;
@@ -63,35 +73,73 @@ function expandRotations(positions: IPosition[]) {
     ...expandRotationsWithFacing(
       positions.map((p) => ({ x: -p.z, y: -p.x, z: p.y }))
     ),
-  ].map((r) => ({
-    positions: r,
-    candidates: /*r.slice(11)*/ [
-      getClosest(r, { x: 1000, y: 1000, z: 1000 }),
-      getClosest(r, { x: 1000, y: -1000, z: 1000 }),
-      getClosest(r, { x: 1000, y: 1000, z: -1000 }),
-      getClosest(r, { x: 1000, y: -1000, z: -1000 }),
-      getClosest(r, { x: -1000, y: 1000, z: 1000 }),
-      getClosest(r, { x: -1000, y: -1000, z: 1000 }),
-      getClosest(r, { x: -1000, y: 1000, z: -1000 }),
-      getClosest(r, { x: -1000, y: -1000, z: -1000 }),
-    ],
-  }));
+  ];
 }
 
-function getClosest(positions: IPosition[], target: IPosition): IPosition {
-  let closest: IPosition = positions[0];
-  let minDist = 3000;
-  for (const p of positions) {
-    const diff = minusPos(p, target);
-    const dist = Math.sqrt(
-      [diff.x, diff.y, diff.z].reduce((a, b) => a + b * b, 0)
-    );
-    if (dist < minDist) {
-      minDist = dist;
-      closest = p;
+function getCandidates(r: IPosition[]) {
+  return [
+    everyGroupFromCornerContains(r, true, true, true),
+    everyGroupFromCornerContains(r, true, false, true),
+    everyGroupFromCornerContains(r, true, true, false),
+    everyGroupFromCornerContains(r, true, false, false),
+    everyGroupFromCornerContains(r, false, true, true),
+    everyGroupFromCornerContains(r, false, false, true),
+    everyGroupFromCornerContains(r, false, true, false),
+    everyGroupFromCornerContains(r, false, false, false),
+  ];
+}
+
+function everyGroupFromCornerContains(
+  positions: IPosition[],
+  xPlus: boolean,
+  yPlus: boolean,
+  zPlus: boolean
+) {
+  const xs = positions.map((p) => p.x).sort((a, b) => (xPlus ? a - b : b - a));
+  const ys = positions.map((p) => p.y).sort((a, b) => (yPlus ? a - b : b - a));
+  const zs = positions.map((p) => p.z).sort((a, b) => (zPlus ? a - b : b - a));
+  const groups = new Map<string, IPosition[]>();
+  let shouldCheckX = true;
+  for (const x of xs) {
+    if (
+      shouldCheckX &&
+      positions.filter((p) => (xPlus ? p.x <= x : p.x >= x)).length < 12
+    )
+      continue;
+    shouldCheckX = false;
+    let shouldCheckY = true;
+    for (const y of ys) {
+      if (
+        shouldCheckY &&
+        positions.filter(
+          (p) => (xPlus ? p.x <= x : p.x >= x) && (yPlus ? p.y <= y : p.y >= y)
+        ).length < 12
+      )
+        continue;
+      shouldCheckY = false;
+      for (const z of zs) {
+        const match = positions.filter(
+          (p) =>
+            (xPlus ? p.x <= x : p.x >= x) &&
+            (yPlus ? p.y <= y : p.y >= y) &&
+            (zPlus ? p.z <= z : p.z >= z)
+        );
+        if (match.length < 12) continue;
+        groups.set(match.map(posToString).join("; "), match);
+        break;
+      }
     }
   }
-  return closest;
+  const matches = Array.from(groups.values());
+  const points = matches.reduce((map, match) => {
+    match.map(posToString).forEach((p) => {
+      map.set(p, (map.get(p) || 0) + 1);
+    });
+    return map;
+  }, new Map<string, number>());
+  return Array.from(points.entries())
+    .filter(([p, c]) => c === matches.length)
+    .map(([p]) => posFromString(p));
 }
 
 function expandRotationsWithFacing(positions: IPosition[]) {
@@ -105,34 +153,34 @@ function expandRotationsWithFacing(positions: IPosition[]) {
 
 function tryAlign(
   refPositions: Set<string>,
-  rotations: { positions: IPosition[]; candidates: IPosition[] }[]
+  rotations: { positions: IPosition[]; candidates: IPosition[][] }[]
 ) {
   for (const rotation of rotations) {
     for (const rPosS of Array.from(refPositions.values())) {
       const rPos = posFromString(rPosS);
-      for (const cPos of rotation.candidates) {
-        const diff = minusPos(rPos, cPos);
-        const match = tryMatch(refPositions, rotation.positions, diff);
-        if (match) {
-          match.forEach((p) => refPositions.add(p));
+      for (const candidates of rotation.candidates) {
+        const diff = minusPos(rPos, candidates[0]);
+        if (match(refPositions, candidates.slice(1), diff).length !== 0)
+          continue;
+        const newPositions = match(refPositions, rotation.positions, diff);
+        if (rotation.positions.length - newPositions.length >= 12) {
+          newPositions.forEach((p) => refPositions.add(p));
           return diff;
         }
       }
     }
   }
-
   return undefined;
 }
 
-function tryMatch(
+function match(
   refPositions: Set<string>,
   positions: IPosition[],
   diff: IPosition
 ) {
-  const newOnes = positions
+  return positions
     .map((p) => posToString(plusPos(p, diff)))
     .filter((p) => !refPositions.has(p));
-  return positions.length - newOnes.length >= 12 ? newOnes : undefined;
 }
 
 function minusPos(p1: IPosition, p2: IPosition) {
