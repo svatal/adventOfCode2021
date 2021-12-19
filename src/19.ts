@@ -8,8 +8,8 @@ export function doIt() {
     const positions = rest.map(posFromString);
     return { id, positions };
   });
-  let [spaceP, ...toMatch] = parsed.map((p) => p.positions);
-  const space = new Set<string>(spaceP.map((p) => posToString(p)));
+  let [spaceP, ...toMatch] = parsed.map((p) => expandRotations(p.positions));
+  const space = new Set<string>(spaceP[0].map((p) => posToString(p)));
   let beacons = [{ x: 0, y: 0, z: 0 }];
   const start = Date.now();
   while (toMatch.length > 0) {
@@ -75,8 +75,7 @@ function expandRotationsWithFacing(positions: IPosition[]) {
   ];
 }
 
-function tryAlign(refPositions: Set<string>, positions: IPosition[]) {
-  const rotations = expandRotations(positions);
+function tryAlign(refPositions: Set<string>, rotations: IPosition[][]) {
   for (const rotation of rotations) {
     for (const rPosS of Array.from(refPositions.values())) {
       const rPos = posFromString(rPosS);
