@@ -7,7 +7,7 @@ import {
   IPosition,
   posFromString,
   posToString,
-} from "./utils/position";
+} from "./utils/position2D";
 
 export function doIt() {
   const parsed = input.split(`\n`).map((line) => line.split("").map((h) => +h));

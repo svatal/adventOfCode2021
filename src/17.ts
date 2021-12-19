@@ -1,6 +1,6 @@
 // import { testInput as input } from "./17-input";
 import { input } from "./17-input";
-import { posToString } from "./utils/position";
+import { posToString } from "./utils/position2D";
 
 export function doIt() {
   const [as, ys] = input.split(`, y=`);

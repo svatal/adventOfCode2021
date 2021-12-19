@@ -1,6 +1,6 @@
 // import { testInput as input } from "./13-input";
 import { input } from "./13-input";
-import { IPosition, posFromString, posToString } from "./utils/position";
+import { IPosition, posFromString, posToString } from "./utils/position2D";
 
 export function doIt() {
   const [dotsS, instrS] = input.split(`\n\n`).map(

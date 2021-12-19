@@ -1,6 +1,6 @@
 // import { testInput as input } from "./11-input";
 import { input } from "./11-input";
-import { existIn, neighbors8, valueInMap } from "./utils/position";
+import { existIn, neighbors8, valueInMap } from "./utils/position2D";
 
 export function doIt() {
   const parsed = input.split(`\n`).map((line) => line.split("").map((x) => +x));

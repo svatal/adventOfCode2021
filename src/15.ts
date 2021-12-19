@@ -1,6 +1,11 @@
 // import { testInput as input } from "./15-input";
 import { input } from "./15-input";
-import { existIn, neighbors4, posToString, valueInMap } from "./utils/position";
+import {
+  existIn,
+  neighbors4,
+  posToString,
+  valueInMap,
+} from "./utils/position2D";
 
 export function doIt() {
   const parsed = input.split(`\n`).map((line) => line.split("").map((r) => +r));

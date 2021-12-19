@@ -1,5 +1,12 @@
 // import { testInput as input } from "./19-input";
 import { input } from "./19-input";
+import {
+  IPosition,
+  minusPos,
+  plusPos,
+  posFromString,
+  posToString,
+} from "./utils/positions3D";
 
 export function doIt() {
   let [spaceP, ...toMatchProt] = input.split(`\n\n`).map((line) => {
@@ -45,12 +52,6 @@ export function doIt() {
   const first = space.size;
   const second = max;
   console.log(first, second, Date.now() - start, "ms");
-}
-
-export interface IPosition {
-  x: number;
-  y: number;
-  z: number;
 }
 
 function expandRotations(positions: IPosition[]) {
@@ -181,25 +182,4 @@ function match(
   return positions
     .map((p) => posToString(plusPos(p, diff)))
     .filter((p) => !refPositions.has(p));
-}
-
-function minusPos(p1: IPosition, p2: IPosition) {
-  return { x: p1.x - p2.x, y: p1.y - p2.y, z: p1.z - p2.z };
-}
-
-function plusPos(p1: IPosition, p2: IPosition) {
-  return { x: p1.x + p2.x, y: p1.y + p2.y, z: p1.z + p2.z };
-}
-
-function equalPos(p1: IPosition, p2: IPosition) {
-  return p1.x === p2.x && p1.y === p2.y && p1.z === p2.z;
-}
-
-function posToString(p: IPosition) {
-  return `${p.x},${p.y},${p.z}`;
-}
-
-function posFromString(s: string): IPosition {
-  const [x, y, z] = s.split(",").map((c) => +c);
-  return { x, y, z };
 }
