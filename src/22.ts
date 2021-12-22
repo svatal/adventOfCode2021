@@ -50,9 +50,9 @@ const boundary = {
 
 function step(s: IStep, grid: Set<string>) {
   const area = generateCoords(
-    mergeRange(boundary, s.x),
-    mergeRange(boundary, s.y),
-    mergeRange(boundary, s.z)
+    intersectRanges(boundary, s.x),
+    intersectRanges(boundary, s.y),
+    intersectRanges(boundary, s.z)
   );
   area.forEach((c) => (s.onOff === "on" ? grid.add(c) : grid.delete(c)));
 }
@@ -68,7 +68,7 @@ function generateCoords(xR: IRange, yR: IRange, zR: IRange) {
 
 /* second star */
 
-function mergeRange(a: IRange, b: IRange) {
+function intersectRanges(a: IRange, b: IRange) {
   return {
     min: Math.max(a.min, b.min),
     max: Math.min(a.max, b.max),
@@ -79,57 +79,39 @@ function step2(s: IStep, grid: ICuboid[]): ICuboid[] {
   if (s.onOff === "on") {
     let gToAdd: ICuboid[] = [s];
     grid.forEach((alreadyOn) => {
-      let g: ICuboid[] = [];
-      gToAdd.forEach((c) => {
-        const overlap = overlapCuboids(c, alreadyOn);
-        const overlapSize = size(overlap);
-        if (overlapSize === 0) {
-          g.push(c);
-          return;
-        }
-        if (overlapSize === size(c)) {
-          return;
-        }
-        const outside = invertCuboid(alreadyOn);
-        outside.forEach((oc) => {
-          const candidate = overlapCuboids(c, oc);
-          if (size(candidate) > 0) {
-            g.push(candidate);
-          }
-        });
-      });
-      gToAdd = g;
+      gToAdd = subtractFromEach(gToAdd, alreadyOn);
     });
-
     return [...grid, ...gToAdd];
   }
-  const g: ICuboid[] = [];
-  grid.forEach((c) => {
-    const overlap = overlapCuboids(c, s);
-    const overlapSize = size(overlap);
-    if (overlapSize === 0) {
-      g.push(c);
-      return;
-    }
-    if (overlapSize === size(c)) {
-      return;
-    }
-    const outside = invertCuboid(s);
-    outside.forEach((oc) => {
-      const candidate = overlapCuboids(c, oc);
-      if (size(candidate) > 0) {
-        g.push(candidate);
-      }
-    });
-  });
-  return g;
+  return subtractFromEach(grid, s);
+}
+
+function subtractFromEach(grid: ICuboid[], s: ICuboid): ICuboid[] {
+  const result: ICuboid[] = [];
+  grid.forEach((c) => result.push(...subtract(c, s)));
+  return result;
+}
+
+function subtract(orig: ICuboid, minus: ICuboid): ICuboid[] {
+  const overlap = overlapCuboids(orig, minus);
+  const overlapSize = size(overlap);
+  if (overlapSize === 0) {
+    return [orig];
+  }
+  if (overlapSize === size(orig)) {
+    return [];
+  }
+  const outside = invertCuboid(minus);
+  return outside
+    .map((oc) => overlapCuboids(orig, oc))
+    .filter((oc) => size(oc) > 0);
 }
 
 function overlapCuboids(c: ICuboid, s: ICuboid): ICuboid {
   return {
-    x: mergeRange(c.x, s.x),
-    y: mergeRange(c.y, s.y),
-    z: mergeRange(c.z, s.z),
+    x: intersectRanges(c.x, s.x),
+    y: intersectRanges(c.y, s.y),
+    z: intersectRanges(c.z, s.z),
   };
 }
 
