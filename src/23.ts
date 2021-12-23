@@ -14,13 +14,21 @@ export function doIt() {
   console.log(aTop, aBottom, bTop, bBottom, cTop, cBottom, dTop, dBottom);
   const s: IState = {
     [Tile.A1]: aTop as TileState,
-    [Tile.A2]: aBottom as TileState,
+    [Tile.A2]: TileState.D,
+    [Tile.A3]: TileState.D,
+    [Tile.A4]: aBottom as TileState,
     [Tile.B1]: bTop as TileState,
-    [Tile.B2]: bBottom as TileState,
+    [Tile.B2]: TileState.C,
+    [Tile.B3]: TileState.B,
+    [Tile.B4]: bBottom as TileState,
     [Tile.C1]: cTop as TileState,
-    [Tile.C2]: cBottom as TileState,
+    [Tile.C2]: TileState.B,
+    [Tile.C3]: TileState.A,
+    [Tile.C4]: cBottom as TileState,
     [Tile.D1]: dTop as TileState,
-    [Tile.D2]: dBottom as TileState,
+    [Tile.D2]: TileState.A,
+    [Tile.D3]: TileState.C,
+    [Tile.D4]: dBottom as TileState,
     [Tile.LeftC]: TileState.Empty,
     [Tile.LeftD]: TileState.Empty,
     [Tile.AB]: TileState.Empty,
@@ -29,17 +37,10 @@ export function doIt() {
     [Tile.RightC]: TileState.Empty,
     [Tile.RightD]: TileState.Empty,
   };
-  //   console.log(s, s[Tile.A1] === TileState.B);
 
+  const start = Date.now();
   const first = solve(s);
-  console.log(first);
-
-  //   console.log(getMoves(s, Tile.A1));
-  //   console.log(getMoves(s, Tile.AB));
-  //   console.log(getMoves(s, Tile.A2));
-  //   const first = parsed.length;
-  //   const second = parsed.length;
-  //   console.log(first, second);
+  console.log(first, Date.now() - start);
 }
 
 enum TileState {
@@ -53,12 +54,20 @@ enum TileState {
 enum Tile {
   A1,
   A2,
+  A3,
+  A4,
   B1,
   B2,
+  B3,
+  B4,
   C1,
   C2,
+  C3,
+  C4,
   D1,
   D2,
+  D3,
+  D4,
   LeftC,
   LeftD,
   AB,
@@ -80,13 +89,53 @@ interface IMove {
 function getNeighbors(t: Tile): IMove[] {
   switch (t) {
     case Tile.A2:
-      return [{ tile: Tile.A1, cost: 1 }];
+      return [
+        { tile: Tile.A1, cost: 1 },
+        { tile: Tile.A3, cost: 1 },
+      ];
+    case Tile.A3:
+      return [
+        { tile: Tile.A2, cost: 1 },
+        { tile: Tile.A4, cost: 1 },
+      ];
+    case Tile.A4:
+      return [{ tile: Tile.A3, cost: 1 }];
     case Tile.B2:
-      return [{ tile: Tile.B1, cost: 1 }];
+      return [
+        { tile: Tile.B1, cost: 1 },
+        { tile: Tile.B3, cost: 1 },
+      ];
+    case Tile.B3:
+      return [
+        { tile: Tile.B2, cost: 1 },
+        { tile: Tile.B4, cost: 1 },
+      ];
+    case Tile.B4:
+      return [{ tile: Tile.B3, cost: 1 }];
     case Tile.C2:
-      return [{ tile: Tile.C1, cost: 1 }];
+      return [
+        { tile: Tile.C1, cost: 1 },
+        { tile: Tile.C3, cost: 1 },
+      ];
+    case Tile.C3:
+      return [
+        { tile: Tile.C2, cost: 1 },
+        { tile: Tile.C4, cost: 1 },
+      ];
+    case Tile.C4:
+      return [{ tile: Tile.C3, cost: 1 }];
     case Tile.D2:
-      return [{ tile: Tile.D1, cost: 1 }];
+      return [
+        { tile: Tile.D1, cost: 1 },
+        { tile: Tile.D3, cost: 1 },
+      ];
+    case Tile.D3:
+      return [
+        { tile: Tile.D2, cost: 1 },
+        { tile: Tile.D4, cost: 1 },
+      ];
+    case Tile.D4:
+      return [{ tile: Tile.D3, cost: 1 }];
     case Tile.RightD:
       return [{ tile: Tile.RightC, cost: 1 }];
     case Tile.LeftD:
@@ -169,13 +218,13 @@ function isHallway(t: Tile) {
 function isTarget(t: Tile, a: TileState): boolean {
   switch (a) {
     case TileState.A:
-      return [Tile.A1, Tile.A2].includes(t);
+      return [Tile.A1, Tile.A2, Tile.A3, Tile.A4].includes(t);
     case TileState.B:
-      return [Tile.B1, Tile.B2].includes(t);
+      return [Tile.B1, Tile.B2, Tile.B3, Tile.B4].includes(t);
     case TileState.C:
-      return [Tile.C1, Tile.C2].includes(t);
+      return [Tile.C1, Tile.C2, Tile.C3, Tile.C4].includes(t);
     case TileState.D:
-      return [Tile.D1, Tile.D2].includes(t);
+      return [Tile.D1, Tile.D2, Tile.D3, Tile.D4].includes(t);
     default:
       return false;
   }
@@ -185,28 +234,51 @@ function getDeeperTile(t: Tile): Tile | undefined {
   switch (t) {
     case Tile.A1:
       return Tile.A2;
+    case Tile.A2:
+      return Tile.A3;
+    case Tile.A3:
+      return Tile.A4;
     case Tile.B1:
       return Tile.B2;
+    case Tile.B2:
+      return Tile.B3;
+    case Tile.B3:
+      return Tile.B4;
     case Tile.C1:
       return Tile.C2;
+    case Tile.C2:
+      return Tile.C3;
+    case Tile.C3:
+      return Tile.C4;
     case Tile.D1:
       return Tile.D2;
+    case Tile.D2:
+      return Tile.D3;
+    case Tile.D3:
+      return Tile.D4;
   }
   return undefined;
+}
+
+function getDeeperTiles(t: Tile) {
+  let d = getDeeperTile(t);
+  const r: Tile[] = [];
+  while (d !== undefined) {
+    r.push(d);
+    d = getDeeperTile(d);
+  }
+  return r;
 }
 
 function canVisit(s: IState, t: Tile, startTile: Tile): boolean {
   const a = s[startTile];
   if (s[t] !== TileState.Empty) return false;
   if (isHallway(t)) return true;
-  if (getDeeperTile(t) === startTile) return true; // deeper going out of starting room
+  if (getDeeperTiles(t).includes(startTile)) return true; // deeper going out of starting room
   if (isHallway(startTile)) {
     if (!isTarget(t, a)) return false;
-    const deeperTile = getDeeperTile(t);
-    return (
-      deeperTile === undefined ||
-      s[deeperTile] === TileState.Empty ||
-      s[deeperTile] === a
+    return getDeeperTiles(t).every(
+      (d) => s[d] === TileState.Empty || s[d] === a
     );
   } else {
     return false;
@@ -216,15 +288,12 @@ function canVisit(s: IState, t: Tile, startTile: Tile): boolean {
 function canStopHere(s: IState, t: Tile, startTile: Tile): boolean {
   if (isHallway(t)) return !isHallway(startTile);
   const a = s[startTile];
-  const dt = getDeeperTile(t);
-  return isTarget(t, a) && (dt === undefined || s[dt] === a);
+  return isTarget(t, a) && getDeeperTiles(t).every((d) => s[d] === a);
 }
 
 function isFinal(s: IState, t: Tile) {
   if (isHallway(t)) return false;
-  const deeper = getDeeperTile(t);
-  if (deeper === undefined) return isTarget(t, s[t]);
-  return isTarget(t, s[t]) && isTarget(deeper, s[deeper]);
+  return isTarget(t, s[t]) && getDeeperTiles(t).every((d) => isTarget(d, s[d]));
 }
 
 function getMoves(s: IState, t: Tile): IMove[] {
@@ -296,11 +365,11 @@ function solve(s: IState) {
     if (solved.has(fingerPrint)) continue;
     solved.add(fingerPrint);
     if (isEnd(cs.s)) {
-      let ss: ISearchState | undefined = cs;
-      while (ss) {
-        console.log(ss.s, ss.cost);
-        ss = ss.parent;
-      }
+      //   let ss: ISearchState | undefined = cs;
+      //   while (ss) {
+      //     console.log(ss.s, ss.cost);
+      //     ss = ss.parent;
+      //   }
       return cs.cost;
     }
     // console.log(cs.s);
@@ -322,7 +391,7 @@ function solve(s: IState) {
     }
     if (added) {
       states.sort((a, b) => b.cost - a.cost);
-      console.log(states[states.length - 1].cost, states.length);
+      //   console.log(states[states.length - 1].cost, states.length);
     }
   }
 }
