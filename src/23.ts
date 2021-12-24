@@ -11,7 +11,6 @@ export function doIt() {
   const cBottom = lines[3][7];
   const dTop = lines[2][9];
   const dBottom = lines[3][9];
-  console.log(aTop, aBottom, bTop, bBottom, cTop, cBottom, dTop, dBottom);
   const s: IState = {
     [Tile.A1]: aTop as TileState,
     [Tile.A2]: TileState.D,
@@ -31,9 +30,13 @@ export function doIt() {
     [Tile.D4]: dBottom as TileState,
     [Tile.LeftC]: TileState.Empty,
     [Tile.LeftD]: TileState.Empty,
+    [Tile.A0]: TileState.Empty,
     [Tile.AB]: TileState.Empty,
+    [Tile.B0]: TileState.Empty,
     [Tile.BC]: TileState.Empty,
+    [Tile.C0]: TileState.Empty,
     [Tile.CD]: TileState.Empty,
+    [Tile.D0]: TileState.Empty,
     [Tile.RightC]: TileState.Empty,
     [Tile.RightD]: TileState.Empty,
   };
@@ -51,30 +54,13 @@ enum TileState {
   Empty = ".",
 }
 
+// prettier-ignore
 enum Tile {
-  A1,
-  A2,
-  A3,
-  A4,
-  B1,
-  B2,
-  B3,
-  B4,
-  C1,
-  C2,
-  C3,
-  C4,
-  D1,
-  D2,
-  D3,
-  D4,
-  LeftC,
-  LeftD,
-  AB,
-  BC,
-  CD,
-  RightC,
-  RightD,
+  A1, A2, A3, A4,
+  B1, B2, B3, B4,
+  C1, C2, C3, C4,
+  D1, D2, D3, D4,
+  LeftD, LeftC, A0, AB, B0, BC, C0, CD, D0, RightC, RightD,
 }
 
 type IState = {
@@ -86,117 +72,62 @@ interface IMove {
   cost: number;
 }
 
-function getNeighbors(t: Tile): IMove[] {
+function getNeighbors(t: Tile): Tile[] {
   switch (t) {
-    case Tile.A2:
-      return [
-        { tile: Tile.A1, cost: 1 },
-        { tile: Tile.A3, cost: 1 },
-      ];
-    case Tile.A3:
-      return [
-        { tile: Tile.A2, cost: 1 },
-        { tile: Tile.A4, cost: 1 },
-      ];
-    case Tile.A4:
-      return [{ tile: Tile.A3, cost: 1 }];
-    case Tile.B2:
-      return [
-        { tile: Tile.B1, cost: 1 },
-        { tile: Tile.B3, cost: 1 },
-      ];
-    case Tile.B3:
-      return [
-        { tile: Tile.B2, cost: 1 },
-        { tile: Tile.B4, cost: 1 },
-      ];
-    case Tile.B4:
-      return [{ tile: Tile.B3, cost: 1 }];
-    case Tile.C2:
-      return [
-        { tile: Tile.C1, cost: 1 },
-        { tile: Tile.C3, cost: 1 },
-      ];
-    case Tile.C3:
-      return [
-        { tile: Tile.C2, cost: 1 },
-        { tile: Tile.C4, cost: 1 },
-      ];
-    case Tile.C4:
-      return [{ tile: Tile.C3, cost: 1 }];
-    case Tile.D2:
-      return [
-        { tile: Tile.D1, cost: 1 },
-        { tile: Tile.D3, cost: 1 },
-      ];
-    case Tile.D3:
-      return [
-        { tile: Tile.D2, cost: 1 },
-        { tile: Tile.D4, cost: 1 },
-      ];
-    case Tile.D4:
-      return [{ tile: Tile.D3, cost: 1 }];
-    case Tile.RightD:
-      return [{ tile: Tile.RightC, cost: 1 }];
-    case Tile.LeftD:
-      return [{ tile: Tile.LeftC, cost: 1 }];
     case Tile.A1:
-      return [
-        { tile: Tile.A2, cost: 1 },
-        { tile: Tile.LeftC, cost: 2 },
-        { tile: Tile.AB, cost: 2 },
-      ];
+      return [Tile.A0, Tile.A2];
+    case Tile.A2:
+      return [Tile.A1, Tile.A3];
+    case Tile.A3:
+      return [Tile.A2, Tile.A4];
+    case Tile.A4:
+      return [Tile.A3];
     case Tile.B1:
-      return [
-        { tile: Tile.B2, cost: 1 },
-        { tile: Tile.AB, cost: 2 },
-        { tile: Tile.BC, cost: 2 },
-      ];
+      return [Tile.B0, Tile.B2];
+    case Tile.B2:
+      return [Tile.B1, Tile.B3];
+    case Tile.B3:
+      return [Tile.B2, Tile.B4];
+    case Tile.B4:
+      return [Tile.B3];
     case Tile.C1:
-      return [
-        { tile: Tile.C2, cost: 1 },
-        { tile: Tile.BC, cost: 2 },
-        { tile: Tile.CD, cost: 2 },
-      ];
+      return [Tile.C0, Tile.C2];
+    case Tile.C2:
+      return [Tile.C1, Tile.C3];
+    case Tile.C3:
+      return [Tile.C2, Tile.C4];
+    case Tile.C4:
+      return [Tile.C3];
     case Tile.D1:
-      return [
-        { tile: Tile.D2, cost: 1 },
-        { tile: Tile.CD, cost: 2 },
-        { tile: Tile.RightC, cost: 2 },
-      ];
+      return [Tile.D0, Tile.D2];
+    case Tile.D2:
+      return [Tile.D1, Tile.D3];
+    case Tile.D3:
+      return [Tile.D2, Tile.D4];
+    case Tile.D4:
+      return [Tile.D3];
+    case Tile.RightD:
+      return [Tile.RightC];
+    case Tile.LeftD:
+      return [Tile.LeftC];
     case Tile.LeftC:
-      return [
-        { tile: Tile.LeftD, cost: 1 },
-        { tile: Tile.AB, cost: 2 },
-        { tile: Tile.A1, cost: 2 },
-      ];
+      return [Tile.LeftD, Tile.A0];
+    case Tile.A0:
+      return [Tile.A1, Tile.LeftC, Tile.AB];
     case Tile.AB:
-      return [
-        { tile: Tile.LeftC, cost: 2 },
-        { tile: Tile.A1, cost: 2 },
-        { tile: Tile.B1, cost: 2 },
-        { tile: Tile.BC, cost: 2 },
-      ];
+      return [Tile.A0, Tile.B0];
+    case Tile.B0:
+      return [Tile.B1, Tile.AB, Tile.BC];
     case Tile.BC:
-      return [
-        { tile: Tile.AB, cost: 2 },
-        { tile: Tile.B1, cost: 2 },
-        { tile: Tile.C1, cost: 2 },
-        { tile: Tile.CD, cost: 2 },
-      ];
+      return [Tile.B0, Tile.C0];
+    case Tile.C0:
+      return [Tile.C1, Tile.BC, Tile.CD];
     case Tile.CD:
-      return [
-        { tile: Tile.BC, cost: 2 },
-        { tile: Tile.C1, cost: 2 },
-        { tile: Tile.D1, cost: 2 },
-        { tile: Tile.RightC, cost: 2 },
-      ];
+      return [Tile.C0, Tile.D0];
+    case Tile.D0:
+      return [Tile.D1, Tile.CD, Tile.RightC];
     case Tile.RightC:
-      return [
-        { tile: Tile.CD, cost: 2 },
-        { tile: Tile.D1, cost: 2 },
-        { tile: Tile.RightD, cost: 1 },
-      ];
+      return [Tile.D0, Tile.RightD];
     default:
       assertNever(t);
   }
@@ -207,9 +138,13 @@ function isHallway(t: Tile) {
   return [
     Tile.LeftD,
     Tile.LeftC,
+    Tile.A0,
     Tile.AB,
+    Tile.B0,
     Tile.BC,
+    Tile.C0,
     Tile.CD,
+    Tile.D0,
     Tile.RightC,
     Tile.RightD,
   ].includes(t);
@@ -218,56 +153,30 @@ function isHallway(t: Tile) {
 function isTarget(t: Tile, a: TileState): boolean {
   switch (a) {
     case TileState.A:
-      return [Tile.A1, Tile.A2, Tile.A3, Tile.A4].includes(t);
+      return AChamber.includes(t);
     case TileState.B:
-      return [Tile.B1, Tile.B2, Tile.B3, Tile.B4].includes(t);
+      return BChamber.includes(t);
     case TileState.C:
-      return [Tile.C1, Tile.C2, Tile.C3, Tile.C4].includes(t);
+      return CChamber.includes(t);
     case TileState.D:
-      return [Tile.D1, Tile.D2, Tile.D3, Tile.D4].includes(t);
+      return DChamber.includes(t);
     default:
       return false;
   }
 }
 
-function getDeeperTile(t: Tile): Tile | undefined {
-  switch (t) {
-    case Tile.A1:
-      return Tile.A2;
-    case Tile.A2:
-      return Tile.A3;
-    case Tile.A3:
-      return Tile.A4;
-    case Tile.B1:
-      return Tile.B2;
-    case Tile.B2:
-      return Tile.B3;
-    case Tile.B3:
-      return Tile.B4;
-    case Tile.C1:
-      return Tile.C2;
-    case Tile.C2:
-      return Tile.C3;
-    case Tile.C3:
-      return Tile.C4;
-    case Tile.D1:
-      return Tile.D2;
-    case Tile.D2:
-      return Tile.D3;
-    case Tile.D3:
-      return Tile.D4;
-  }
-  return undefined;
-}
+const AChamber = [Tile.A1, Tile.A2, Tile.A3, Tile.A4];
+const BChamber = [Tile.B1, Tile.B2, Tile.B3, Tile.B4];
+const CChamber = [Tile.C1, Tile.C2, Tile.C3, Tile.C4];
+const DChamber = [Tile.D1, Tile.D2, Tile.D3, Tile.D4];
 
 function getDeeperTiles(t: Tile) {
-  let d = getDeeperTile(t);
-  const r: Tile[] = [];
-  while (d !== undefined) {
-    r.push(d);
-    d = getDeeperTile(d);
+  for (const chamber of [AChamber, BChamber, CChamber, DChamber]) {
+    const i = chamber.indexOf(t);
+    if (i < 0) continue;
+    return chamber.slice(i + 1);
   }
-  return r;
+  return [];
 }
 
 function canVisit(s: IState, t: Tile, startTile: Tile): boolean {
@@ -286,6 +195,7 @@ function canVisit(s: IState, t: Tile, startTile: Tile): boolean {
 }
 
 function canStopHere(s: IState, t: Tile, startTile: Tile): boolean {
+  if ([Tile.A0, Tile.B0, Tile.C0, Tile.D0].includes(t)) return false;
   if (isHallway(t)) return !isHallway(startTile);
   const a = s[startTile];
   return isTarget(t, a) && getDeeperTiles(t).every((d) => s[d] === a);
@@ -305,12 +215,9 @@ function getMoves(s: IState, t: Tile): IMove[] {
   while (border.length) {
     const c = border.pop()!;
     const ns = getNeighbors(c.tile);
-    for (let n of ns) {
-      if (
-        canVisit(s, n.tile, t) &&
-        !accessible.find((a) => a.tile === n.tile)
-      ) {
-        n.cost += c.cost;
+    for (let nTile of ns) {
+      if (canVisit(s, nTile, t) && !accessible.find((a) => a.tile === nTile)) {
+        const n = { tile: nTile, cost: c.cost + 1 };
         accessible.push(n);
         border.push(n);
       }
@@ -365,14 +272,8 @@ function solve(s: IState) {
     if (solved.has(fingerPrint)) continue;
     solved.add(fingerPrint);
     if (isEnd(cs.s)) {
-      //   let ss: ISearchState | undefined = cs;
-      //   while (ss) {
-      //     console.log(ss.s, ss.cost);
-      //     ss = ss.parent;
-      //   }
       return cs.cost;
     }
-    // console.log(cs.s);
     let added = false;
     for (const t of getTiles(cs.s)) {
       const moving = cs.s[t];
@@ -382,7 +283,6 @@ function solve(s: IState) {
           cost: cs.cost + move.cost * unitMoveCost(moving),
           parent: cs,
         };
-        // console.log(t, move);
         next.s[t] = TileState.Empty;
         next.s[move.tile] = moving;
         states.push(next);
@@ -391,7 +291,6 @@ function solve(s: IState) {
     }
     if (added) {
       states.sort((a, b) => b.cost - a.cost);
-      //   console.log(states[states.length - 1].cost, states.length);
     }
   }
 }
