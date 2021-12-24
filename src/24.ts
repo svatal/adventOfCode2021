@@ -14,28 +14,49 @@ export function doIt() {
     }));
   console.log(r);
 
-  let t = Date.now();
-  for (let mn = 99999999999999; mn > 99999999999989; mn--) {
-    const a = mn
-      .toFixed(0)
-      .split("")
-      .map((x) => +x);
-    if (a.some((x) => x === 0)) continue;
-    if (Date.now() - t > 1000) {
-      t = Date.now();
-      console.log(mn.toFixed(0));
-    }
-    console.log(validate(parsed, [...a]), validate2(r, a));
-    // const isValid = validate(parsed, a);
-    // if (isValid) {
-    //   console.log(mn);
-    //   return;
-    // }
-  }
-  console.log("dnf");
+  console.log(solve(r, true));
+  console.log(solve(r, false));
+  // let t = Date.now();
+  // for (let mn = 99999999999999; mn > 99999999999989; mn--) {
+  //   const a = mn
+  //     .toFixed(0)
+  //     .split("")
+  //     .map((x) => +x);
+  //   if (a.some((x) => x === 0)) continue;
+  //   if (Date.now() - t > 1000) {
+  //     t = Date.now();
+  //     console.log(mn.toFixed(0));
+  //   }
+  //   console.log(validate(parsed, [...a]), validate2(r, a));
+  //   // const isValid = validate(parsed, a);
+  //   // if (isValid) {
+  //   //   console.log(mn);
+  //   //   return;
+  //   // }
+  // }
+  // console.log("dnf");
   //   const first = parsed.length;
   //   const second = parsed.length;
   //   console.log(first, second);
+}
+
+function solve(code: { A: number; B: number; C: number }[], max: boolean) {
+  const buff: { pos: number; C: number }[] = [];
+  const result: number[] = [];
+  for (let i = 0; i < code.length; i++) {
+    const iter = code[i];
+    if (iter.A === 1) {
+      buff.push({ pos: i, C: iter.C });
+    } else {
+      const other = buff.pop()!;
+      const diff = other.C + iter.B;
+      const base = max ? Math.min(9 - diff, 9) : Math.max(1 - diff, 1);
+      console.log(i, other.pos, diff, base, base + diff);
+      result[other.pos] = base;
+      result[i] = base + diff;
+    }
+  }
+  return result.join("");
 }
 
 function validate2(code: { A: number; B: number; C: number }[], num: number[]) {
