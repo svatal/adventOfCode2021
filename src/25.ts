@@ -3,18 +3,16 @@ import { input } from "./25-input";
 import { posFromString, posToString } from "./utils/position2D";
 
 export function doIt() {
-  const parsed = input.split(`\n`).map((line) => line.split("") as TileState[]);
+  const parsed = input.split(`\n`).map((line) => line.split(""));
   const map = parsed.reduce((m, l, y) => {
     l.forEach((c, x) => {
-      if (c !== TileState.Empty) {
-        m.set(posToString({ x, y }), c as unknown as Cucumber);
+      if (c === Cucumber.EastFC || c === Cucumber.SouthFC) {
+        m.set(posToString({ x, y }), c);
       }
     });
     return m;
   }, new Map<string, Cucumber>());
-  const first = step(map, parsed.length, parsed[0].length);
-  const second = parsed.length;
-  console.log(first, second);
+  console.log(findEquilibrium(map, parsed.length, parsed[0].length));
 }
 
 enum Cucumber {
@@ -22,53 +20,46 @@ enum Cucumber {
   EastFC = ">",
 }
 
-enum TileState {
-  SouthFC = "v",
-  EastFC = ">",
-  Empty = ".",
-}
-
-function moveEast(pos: string, xMax: number): string {
+function move(pos: string, c: Cucumber, yMax: number, xMax: number): string {
   const origPos = posFromString(pos);
   return posToString({
-    x: (origPos.x + 1) % xMax,
-    y: origPos.y,
+    x: (origPos.x + (c === Cucumber.EastFC ? 1 : 0)) % xMax,
+    y: (origPos.y + (c === Cucumber.SouthFC ? 1 : 0)) % yMax,
   });
 }
 
-function moveSouth(pos: string, yMax: number): string {
-  const origPos = posFromString(pos);
-  return posToString({
-    y: (origPos.y + 1) % yMax,
-    x: origPos.x,
-  });
+function moveAll(
+  map: Map<string, Cucumber>,
+  cType: Cucumber,
+  yMax: number,
+  xMax: number
+) {
+  const toMove = Array.from(map.entries())
+    .filter(([_, c]) => c === cType)
+    .map(([origPos]) => ({
+      origPos,
+      targetPos: move(origPos, cType, yMax, xMax),
+    }))
+    .filter(({ targetPos }) => !map.has(targetPos));
+  for (const { origPos, targetPos } of toMove) {
+    map.delete(origPos);
+    map.set(targetPos, cType);
+  }
+  return toMove.length > 0;
 }
 
-function step(map: Map<string, Cucumber>, yMax: number, xMax: number) {
+function findEquilibrium(
+  map: Map<string, Cucumber>,
+  yMax: number,
+  xMax: number
+) {
   let moved = false;
   let step = 0;
   do {
     step++;
-    const eastFC = Array.from(map.entries())
-      .filter(([_, c]) => c === Cucumber.EastFC)
-      .map(([p]) => p)
-      .filter((origPosS) => !map.has(moveEast(origPosS, xMax)));
-    for (const origPosS of eastFC) {
-      const targetPosS = moveEast(origPosS, xMax);
-      map.delete(origPosS);
-      map.set(targetPosS, Cucumber.EastFC);
-    }
-    const southFC = Array.from(map.entries())
-      .filter(([_, c]) => c === Cucumber.SouthFC)
-      .map(([p]) => p)
-      .filter((origPosS) => !map.has(moveSouth(origPosS, yMax)));
-    for (const origPosS of southFC) {
-      const targetPosS = moveSouth(origPosS, yMax);
-      map.delete(origPosS);
-      map.set(targetPosS, Cucumber.SouthFC);
-    }
-    moved = eastFC.length > 0 || southFC.length > 0;
+    const movedToEast = moveAll(map, Cucumber.EastFC, yMax, xMax);
+    const movedToSouth = moveAll(map, Cucumber.SouthFC, yMax, xMax);
+    moved = movedToEast || movedToSouth;
   } while (moved);
-  console.log(step);
   return step;
 }
